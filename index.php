@@ -80,7 +80,7 @@
                     <h5 class="modal-title" id="modalLabel' . $row["idProd"] . '">' . $row["libelle"] . '</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body text-center">
                     <img src="' . $srcImagePath . '" class="img-fluid mb-3" alt="' . $row["libelle"] . '">
                     <p>' . $row["descriptif"] . '</p>
                 </div>
