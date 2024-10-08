@@ -35,6 +35,7 @@
     <?php
     // Inclusion du fichier de connexion
     include 'connexion.php';
+    include 'createVignette.php';
 
     // Requête SQL pour récupérer les produits
     $sql = "SELECT idProd, libelle, descriptif, image, vignette FROM produit";
@@ -46,35 +47,49 @@
         // Boucle pour chaque produit
         while ($row = mysqli_fetch_assoc($result)) {
             // Génération de la carte pour chaque produit
+            // Dimensions souhaitées pour la vignette
+            $thumbWidth = 150;
+            $thumbHeight = 50;
+
+            // Chemin vers l'image source
+            $srcImagePath = $row["image"];
+            // Chemin vers la vignette
+            $thumbImagePath = 'thumbnails/' . basename($srcImagePath); // Assurez-vous que le dossier existe
+
+            // Créer la vignette si elle n'existe pas déjà
+            if (!file_exists($thumbImagePath)) {
+                createThumbnail($srcImagePath, $thumbImagePath, $thumbWidth, $thumbHeight);
+            };
+
+            // Afficher la vignette
             echo '
-        <div class="col-md-3 mb-4 d-flex justify-content-center">
-            <div class="card clickable-card" data-bs-toggle="modal" data-bs-target="#modal' . $row["idProd"] . '" style="width: 18rem;">
-                <img src="' . $row["vignette"] . '" class="card-img-top" alt="' . $row["libelle"] . '">
-                <div class="card-body">
-                    <h5 class="card-title">' . $row["libelle"] . '</h5>
-                    <p class="card-text">' . substr($row["descriptif"], 0, 100) . '...</p>
+    <div class="col-md-3 mb-4 d-flex justify-content-center">
+        <div class="card clickable-card" data-bs-toggle="modal" data-bs-target="#modal' . $row["idProd"] . '" style="width: 18rem;">
+            <img src="' . $thumbImagePath . '" class="card-img-top" alt="' . $row["libelle"] . '">
+            <div class="card-body">
+                <h5 class="card-title">' . $row["libelle"] . '</h5>
+                <p class="card-text">' . substr($row["descriptif"], 0, 100) . '...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal' . $row["idProd"] . '" tabindex="-1" aria-labelledby="modalLabel' . $row["idProd"] . '" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel' . $row["idProd"] . '">' . $row["libelle"] . '</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <img src="' . $srcImagePath . '" class="img-fluid mb-3" alt="' . $row["libelle"] . '">
+                    <p>' . $row["descriptif"] . '</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                 </div>
             </div>
         </div>
-
-        <!-- Modale pour le produit ' . $row["idProd"] . ' -->
-        <div class="modal fade" id="modal' . $row["idProd"] . '" tabindex="-1" aria-labelledby="modalLabel' . $row["idProd"] . '" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalLabel' . $row["idProd"] . '">' . $row["libelle"] . '</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <img src="' . $row["image"] . '" class="img-fluid mb-3" alt="' . $row["libelle"] . '">
-                        <p>' . $row["descriptif"] . '</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                    </div>
-                </div>
-            </div>
-        </div>';
+    </div>';
         }
 
         echo '</div></main>';
