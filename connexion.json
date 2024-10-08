@@ -1,0 +1,7 @@
+{
+    "hosts": 
+    {
+        "lakartxela.iutbayonne.univ-pau.fr":["aberho001_bd", "aberho001_bd", "aberho001_bd"],
+        "localhost":["root", "root", "root"]
+    }
+}
