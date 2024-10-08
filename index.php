@@ -22,9 +22,10 @@
                             <a class="nav-link active" aria-current="page" href="#">Accueil</a>
                         </li>
                     </ul>
-                    <button type="button" class="btn btn-secondary">
+                    <a href="pannier.php" class="btn btn-secondary">
                         Pannier
-                    </button>
+                    </a>
+
                 </div>
             </div>
         </nav>
