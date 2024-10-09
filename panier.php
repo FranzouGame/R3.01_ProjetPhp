@@ -33,5 +33,58 @@
 
 </body>
 
+<main>
+    <?php
+    session_start();
+
+    // Inclusion du fichier de connexion
+    include 'connexion.php';
+
+    // Si le formulaire a été soumis
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $idProd = $_POST['idProd'];
+
+        // Requête SQL pour récupérer les informations du produit
+        $sql = "SELECT * FROM produit WHERE idProd = $idProd";
+        $result = mysqli_query($link, $sql);
+        $product = mysqli_fetch_assoc($result);
+
+        if ($product) {
+            // Initialiser le panier si nécessaire
+            if (!isset($_SESSION['panier'])) {
+                $_SESSION['panier'] = [];
+            }
+
+            // Vérifier si le produit est déjà dans le panier
+            if (isset($_SESSION['panier'][$idProd])) {
+                // Si le produit existe, augmenter la quantité
+                $_SESSION['panier'][$idProd]['quantity']++;
+            } else {
+                // Sinon, ajouter le produit avec la quantité 1
+                $_SESSION['panier'][$idProd] = [
+                    'libelle' => $product['libelle'],
+                    'prix' => $product['prix'],
+                    'quantity' => 1
+                ];
+            }
+        }
+
+        // Rediriger vers la page du panier
+        header('Location: panier.php');
+        exit();
+    }
+
+    // Affichage des produits du panier
+    if (isset($_SESSION['panier']) && !empty($_SESSION['panier'])) {
+        echo '<h1>Votre panier</h1>';
+        foreach ($_SESSION['panier'] as $id => $product) {
+            echo '<p>' . $product['libelle'] . ' - ' . $product['quantity'] . ' x ' . $product['prix'] . ' €</p>';
+        }
+    } else {
+        echo '<p>Votre panier est vide.</p>';
+    }
+
+    ?>
+</main>
 
 </html>

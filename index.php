@@ -33,6 +33,9 @@
 
     <h1 class="container mt-5">Articles : </h1>
     <?php
+
+    session_start(); // Démarrer la session
+
     // Inclusion du fichier de connexion
     include 'connexion.php';
     include 'createVignette.php';
@@ -70,7 +73,10 @@
                 <h5 class="card-title">' . $row["libelle"] . '</h5>
                 <p class="card-text">' . substr($row["descriptif"], 0, 100) . '...</p>
                 <p class="card-text"> Prix : ' . $row["prix"] . ' € </p>
-                <a href="panier.php" class="btn btn-primary">Ajouter au panier</a>
+                <form method="POST" action="panier.php">
+                     <input type="hidden" name="idProd" value="' . $row["idProd"] . '">
+                     <button type="submit" class="btn btn-primary">Ajouter au panier</button>
+                </form>
             </div>
         </div>
     </div>
