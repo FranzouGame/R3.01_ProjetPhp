@@ -18,11 +18,18 @@ foreach ($connexionData["hosts"] as $hosts) {
     // Connexion à la base de données
     $link = mysqli_connect($host, $usr, $pwd, $bdd);
 
+    // Vérification de la connexion
     if ($link) {
+        echo "Connexion réussie à la base de données $bdd sur $host.";
         break; // On sort de la boucle si la connexion est réussie
+    } else {
+        // Affichage d'une erreur pour le debug
+        error_log("Échec de la connexion à $host: " . mysqli_connect_error());
+        echo "Échec de la connexion à $host: " . mysqli_connect_error();
     }
 }
 
 if (!$link) {
     die("Connexion échouée : " . mysqli_connect_error());
 }
+?>
