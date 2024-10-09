@@ -22,14 +22,15 @@
                             <a class="nav-link active" aria-current="page" href="index.php">Accueil</a>
                         </li>
                     </ul>
-                    <a href="pannier.php" class="btn btn-secondary">
-                        Pannier
+                    <a href="panier.php" class="btn btn-secondary">
+                        Panier
                     </a>
-
                 </div>
             </div>
         </nav>
     </header>
+
+
 </body>
 
 

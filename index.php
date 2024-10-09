@@ -22,8 +22,8 @@
                             <a class="nav-link active" aria-current="page" href="#">Accueil</a>
                         </li>
                     </ul>
-                    <a href="pannier.php" class="btn btn-secondary">
-                        Pannier
+                    <a href="panier.php" class="btn btn-secondary">
+                        Panier
                     </a>
 
                 </div>
@@ -38,7 +38,7 @@
     include 'createVignette.php';
 
     // Requête SQL pour récupérer les produits
-    $sql = "SELECT idProd, libelle, descriptif, image, vignette FROM produit";
+    $sql = "SELECT idProd, libelle, prix, descriptif, image, vignette FROM produit";
     $result = mysqli_query($link, $sql);
 
     if (mysqli_num_rows($result) > 0) {
@@ -69,6 +69,8 @@
             <div class="card-body">
                 <h5 class="card-title">' . $row["libelle"] . '</h5>
                 <p class="card-text">' . substr($row["descriptif"], 0, 100) . '...</p>
+                <p class="card-text"> Prix : ' . $row["prix"] . ' € </p>
+                <a href="panier.php" class="btn btn-primary">Ajouter au panier</a>
             </div>
         </div>
     </div>
