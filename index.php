@@ -32,6 +32,7 @@
     </header>
 
     <h1 class="container mt-5">Articles : </h1>
+
     <?php
 
     session_start(); // Démarrer la session
