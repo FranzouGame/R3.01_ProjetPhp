@@ -32,4 +32,3 @@ foreach ($connexionData["hosts"] as $hosts) {
 if (!$link) {
     die("Connexion échouée : " . mysqli_connect_error() . "\n");
 }
-?>

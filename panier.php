@@ -62,13 +62,14 @@
                     // Si le produit existe, augmenter la quantité
                     $_SESSION['panier'][$idProd]['quantity']++;
                 } else {
-                    // Sinon, ajouter le produit avec la quantité 1
-                    $_SESSION['panier'][$idProd] = [
-                        'libelle' => $product['libelle'],
-                        'prix' => $product['prix'],
-                        'image' => $thumbImagePath, // Ajouter le chemin de la vignette
-                        'quantity' => 1
-                    ];
+                    if (!isset($_SESSION['panier'][$idProd])) {
+                        $_SESSION['panier'][$idProd] = [
+                            'libelle' => $product['libelle'],
+                            'prix' => $product['prix'],
+                            'image' => isset($product['image']) ? 'thumbnails/' . basename($product['image']) : '', // Vérifie si 'image' est définie
+                            'quantity' => 1
+                        ];
+                    }
                 }
             }
         }
