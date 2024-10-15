@@ -14,7 +14,7 @@ foreach ($connexionData["hosts"] as $hosts) {
     $bdd = $hosts[1];
     $usr = $hosts[2];
     $pwd = $hosts[3];
-    
+
     // Connexion à la base de données
     $link = @mysqli_connect($host, $usr, $pwd, $bdd); // Le @ permet de retirer l'affichage du message d'erreur (l'instruction ne comprends pas try catch)
 
