@@ -1,3 +1,6 @@
+<?php
+    session_start(); // Démarrer la session
+?>
 <html lang="fr">
 
 <head>
@@ -33,10 +36,9 @@
 
     <h1 class="container mt-5">Articles : </h1>
 
-    <?php
 
-    session_start(); // Démarrer la session
 
+<?php
     // Inclusion du fichier de connexion
     include 'connexion.php';
     include 'createVignette.php';
