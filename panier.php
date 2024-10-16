@@ -30,8 +30,6 @@
         </nav>
     </header>
 
-
-
     <main>
         <?php
         session_start();
@@ -43,31 +41,49 @@
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $idProd = $_POST['idProd'];
 
-            // Requête SQL pour récupérer les informations du produit
-            $sql = "SELECT * FROM produit WHERE idProd = $idProd";
-            $result = mysqli_query($link, $sql);
-            $product = mysqli_fetch_assoc($result);
-
-            if ($product) {
-                // Initialiser le panier si nécessaire
-                if (!isset($_SESSION['panier'])) {
-                    $_SESSION['panier'] = [];
+            if (isset($_POST['action'])) {
+                switch ($_POST['action']) {
+                    case 'add':
+                        $_SESSION['panier'][$idProd]['quantity']++;
+                        break;
+                    case 'remove':
+                        if ($_SESSION['panier'][$idProd]['quantity'] > 1) {
+                            $_SESSION['panier'][$idProd]['quantity']--;
+                        } else {
+                            unset($_SESSION['panier'][$idProd]);
+                        }
+                        break;
+                    case 'delete':
+                        unset($_SESSION['panier'][$idProd]);
+                        break;
                 }
+            } else {
+                // Requête SQL pour récupérer les informations du produit
+                $sql = "SELECT * FROM produit WHERE idProd = $idProd";
+                $result = mysqli_query($link, $sql);
+                $product = mysqli_fetch_assoc($result);
 
-                // Chemin vers l'image du produit
-                $srcImagePath = $product["image"];
+                if ($product) {
+                    // Initialiser le panier si nécessaire
+                    if (!isset($_SESSION['panier'])) {
+                        $_SESSION['panier'] = [];
+                    }
 
-                // Vérifier si le produit est déjà dans le panier
-                if (isset($_SESSION['panier'][$idProd])) {
-                    // Si le produit existe, augmenter la quantité
-                    $_SESSION['panier'][$idProd]['quantity']++;
-                } else {
-                    $_SESSION['panier'][$idProd] = [
-                        'libelle' => $product['libelle'],
-                        'prix' => $product['prix'],
-                        'image' => $srcImagePath,  // Utiliser la bonne variable
-                        'quantity' => 1
-                    ];
+                    // Chemin vers l'image du produit
+                    $srcImagePath = $product["image"];
+
+                    // Vérifier si le produit est déjà dans le panier
+                    if (isset($_SESSION['panier'][$idProd])) {
+                        // Si le produit existe, augmenter la quantité
+                        $_SESSION['panier'][$idProd]['quantity']++;
+                    } else {
+                        $_SESSION['panier'][$idProd] = [
+                            'libelle' => $product['libelle'],
+                            'prix' => $product['prix'],
+                            'image' => $srcImagePath,  // Utiliser la bonne variable
+                            'quantity' => 1
+                        ];
+                    }
                 }
             }
         }
@@ -75,6 +91,7 @@
         // Affichage des produits du panier
         if (isset($_SESSION['panier']) && !empty($_SESSION['panier'])) {
             echo '<h1>Votre panier</h1>';
+            $total = 0; // Initialisation du total
             foreach ($_SESSION['panier'] as $id => $product) {
                 // Vérification de l'image avant affichage
                 if (!empty($product['image'])) {
@@ -82,14 +99,36 @@
                 } else {
                     echo '<p>Image non disponible</p>';
                 }
+                $totalGlobal = $product['prix'] * $product['quantity']; // Sous-total pour chaque produi
                 echo '<p>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</p>';
+
+                // Formulaire pour ajouter une quantité
+                echo '<form method="POST" action="">';
+                echo '<input type="hidden" name="idProd" value="' . $id . '">';
+                echo '<button type="submit" name="action" value="add" class="btn btn-success">+</button>';
+                echo '</form>';
+
+                // Formulaire pour retirer une quantité
+                echo '<form method="POST" action="">';
+                echo '<input type="hidden" name="idProd" value="' . $id . '">';
+                echo '<button type="submit" name="action" value="remove" class="btn btn-warning">-</button>';
+                echo '</form>';
+
+                // Formulaire pour supprimer l'article
+                echo '<form method="POST" action="">';
+                echo '<input type="hidden" name="idProd" value="' . $id . '">';
+                echo '<button type="submit" name="action" value="delete" class="btn btn-danger">Supprimer</button>';
+                echo '</form>';
+
+                $total += $totalGlobal;
             }
         } else {
             echo '<p>Votre panier est vide.</p>';
         }
-
+        echo '<h2>Total du panier : ' . $total . ' €</h2>';
         ?>
     </main>
+
 
 </body>
 
