@@ -82,7 +82,7 @@
                         $_SESSION['panier'][$idProd] = [
                             'libelle' => $product['libelle'],
                             'prix' => $product['prix'],
-                            'image' => $srcImagePath,  // Utiliser la bonne variable
+                            'image' => $srcImagePath,
                             'quantity' => 1
                         ];
                     }
@@ -94,13 +94,16 @@
         if (isset($_SESSION['panier']) && !empty($_SESSION['panier'])) {
             echo '<h1>Votre panier</h1>';
             foreach ($_SESSION['panier'] as $id => $product) {
+
+                echo '<nav class="navbar navbar-expand-lg bg-light" data-bs-theme="light">';
                 // Vérification de l'image avant affichage
                 if (!empty($product['image'])) {
-                    echo '<img src="' . htmlspecialchars($product['image']) . '" alt="' . htmlspecialchars($product['libelle']) . '">';
+                    echo '<img src="' . htmlspecialchars($product['image']) . '" alt="' . htmlspecialchars($product['libelle']) . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;">';
                 } else {
                     echo '<p>Image non disponible</p>';
                 }
                 $totalGlobal = $product['prix'] * $product['quantity']; // Sous-total pour chaque produi
+
                 echo '<p>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</p>';
 
                 // Formulaire pour ajouter une quantité
@@ -120,7 +123,8 @@
                 echo '<input type="hidden" name="idProd" value="' . $id . '">';
                 echo '<button type="submit" name="action" value="delete" class="btn btn-danger">Supprimer</button>';
                 echo '</form>';
-
+                echo '</nav>';
+                echo '<SPACER>';
                 $total += $totalGlobal;
             }
         } else {
@@ -129,6 +133,15 @@
         echo '<h2>Total du panier : ' . $total . ' €</h2>';
         ?>
     </main>
+    <nav>
+        <a href="index.php" class="btn btn-secondary">
+            Continuer les achats
+        </a>
+        <a href="panierPayer.php" class="btn btn-secondary">
+            Payer
+        </a>
+
+    </nav>
 </body>
 
 </html>
