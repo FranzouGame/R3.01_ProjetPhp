@@ -1,3 +1,5 @@
+<?php session_start(); // Démarrer la session
+?>
 <html lang="fr">
 
 <head>
@@ -5,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
     <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
-    <title>Document</title>
+    <title>Paradis de l'aspi - panier</title>
 </head>
 
 <body>
@@ -32,10 +34,10 @@
 
     <main>
         <?php
-        session_start();
 
         // Inclusion du fichier de connexion
         include 'connexion.php';
+        $total = 0; // Initialisation du total
 
         // Si le formulaire a été soumis
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -91,7 +93,6 @@
         // Affichage des produits du panier
         if (isset($_SESSION['panier']) && !empty($_SESSION['panier'])) {
             echo '<h1>Votre panier</h1>';
-            $total = 0; // Initialisation du total
             foreach ($_SESSION['panier'] as $id => $product) {
                 // Vérification de l'image avant affichage
                 if (!empty($product['image'])) {
@@ -128,8 +129,6 @@
         echo '<h2>Total du panier : ' . $total . ' €</h2>';
         ?>
     </main>
-
-
 </body>
 
 </html>
