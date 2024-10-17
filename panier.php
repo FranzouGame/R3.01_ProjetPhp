@@ -107,7 +107,7 @@
                 echo '<p>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</p>';
 
                 // Formulaire pour ajouter une quantité
-                echo '<form method="POST" action="">';
+                echo '<form method="POST" action=""  class="ml-5">';
                 echo '<input type="hidden" name="idProd" value="' . $id . '">';
                 echo '<button type="submit" name="action" value="add" class="btn btn-success">+</button>';
                 echo '</form>';
