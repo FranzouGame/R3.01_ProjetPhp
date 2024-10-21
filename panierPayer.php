@@ -55,12 +55,27 @@
                 $erreur['csc'] = 'Le csc doit contenir que des chiffres !';
             }
 
-            $dateActuelle = new DateTime();
-            $dateDexpiDeLaCarte = DateTime::createFromFormat('Y-m-d', $expiry_date); // Changement pour gérer le format date
-            $dateValide = $dateActuelle->modify('+3 months');
+            // Vérification de la date d'expiration (format MM/YY)
+            if (preg_match('/(0[1-9]|1[0-2])\/[0-9]{2}/', $expiry_date)) {
+                $currentMonth = date('m');
+                $currentYear = date('y');
 
-            if ($dateDexpiDeLaCarte < $dateValide) {
-                $erreur['dateDexpi'] = 'La date d\'expiration doit être supérieure à 3 mois à partir d\'aujourd\'hui.';
+                list($month, $year) = explode('/', $expiry_date);
+                $month = (int) $month;
+                $year = (int) $year + 2000; // Convertir en format année à 4 chiffres
+
+                // Créer des objets DateTime pour comparer la date d'expiration avec la date actuelle + 3 mois
+                $dateActuelle = new DateTime();
+                $dateValide = (clone $dateActuelle)->modify('+3 months');
+
+                // Date d'expiration fournie
+                $dateExpiration = DateTime::createFromFormat('Y-m', "$year-$month");
+
+                if ($dateExpiration < $dateValide) {
+                    $erreur['dateDexpi'] = 'La date d\'expiration doit être supérieure à 3 mois à partir d\'aujourd\'hui.';
+                }
+            } else {
+                $erreur['dateDexpi'] = 'Le format de la date d\'expiration est invalide. Utilisez MM/YY.';
             }
 
             // Si aucune erreur, traiter le formulaire
@@ -68,12 +83,12 @@
                 if (isset($_SESSION['panier'])) {
                     unset($_SESSION['panier']); // Vider le panier
                 }
-                header("Refresh: 2; url=index.php"); // Redirection vers index au bout de 2 secondes
+                header("Refresh: 2; url=panier.php"); // Redirection vers index au bout de 2 secondes
                 echo "<div class='alert alert-success'>Le paiement a été validé avec succès.</div>";
             }
         }
-
         ?>
+
 
 
     </main>
@@ -97,8 +112,8 @@
 
             <!-- Date d'expiration -->
             <div class="form-group">
-                <label>Date d'Expiration</label>
-                <input type="date" name="dateDexpi" id="dateDexpi" class="form-control" required>
+                <label>Date d'Expiration (MM/YY)</label>
+                <input type="text" name="dateDexpi" id="dateDexpi" class="form-control" placeholder="01/27" maxlength="5" required pattern="(0[1-9]|1[0-2])\/[0-9]{2}">
                 <p class="text-danger"><?= $erreur['dateDexpi'] ?></p>
             </div>
 
