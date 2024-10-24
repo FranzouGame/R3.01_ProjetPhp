@@ -1,4 +1,4 @@
-<?php session_start(); // Démarrer la session
+<?php session_start(); // Démarrer la session 
 ?>
 <html lang="fr">
 
@@ -24,9 +24,7 @@
                             <a class="nav-link active" aria-current="page" href="index.php">Accueil</a>
                         </li>
                     </ul>
-                    <a href="panier.php" class="btn btn-secondary">
-                        Panier
-                    </a>
+                    <a href="panier.php" class="btn btn-secondary">Panier</a>
                 </div>
             </div>
         </nav>
@@ -34,7 +32,6 @@
 
     <main>
         <?php
-
         // Inclusion du fichier de connexion
         include 'connexion.php';
         $total = 0; // Initialisation du total
@@ -102,10 +99,10 @@
                 $quantiterProd = mysqli_fetch_assoc($result);
                 $quantiterDispo = $quantiterProd['quantiter'];
 
-                echo '<nav class="navbar navbar-expand-lg bg-light" data-bs-theme="light">';
+                echo '<div class="d-flex justify-content-between align-items-center bg-light p-3 mb-3">';
+
                 // Vérification de l'image avant affichage
                 if (!empty($product['image'])) {
-
                     $cheminImage = htmlspecialchars($product['image']);
                     $nomImage = basename($cheminImage);  // Récupérer uniquement le nom du fichier image
                     $cheminVignette = "thumbnails/" . $nomImage;
@@ -120,12 +117,17 @@
                 } else {
                     echo '<p>Image non disponible</p>';
                 }
-                $totalGlobal = $product['prix'] * $product['quantity']; // Sous-total pour chaque produi
 
-                echo '<p>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</p>';
+                // Informations sur le produit et la quantité
+                echo '<div class="mx-3">';
+                echo '<h4>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</h4>';
+                echo '</div>';
+
+                // Actions pour la quantité (+, -) et suppression
+                echo '<div class="d-flex align-items-center">';
 
                 // Formulaire pour ajouter une quantité
-                echo '<form method="POST" action="" class="ml-5">';
+                echo '<form method="POST" action="" class="mx-2">';
                 echo '<input type="hidden" name="idProd" value="' . $id . '">';
                 echo '<button type="submit" name="action" value="add" class="btn ';
 
@@ -140,19 +142,20 @@
                 echo '</form>';
 
                 // Formulaire pour retirer une quantité
-                echo '<form method="POST" action="">';
+                echo '<form method="POST" action="" class="mx-2">';
                 echo '<input type="hidden" name="idProd" value="' . $id . '">';
                 echo '<button type="submit" name="action" value="remove" class="btn btn-warning">-</button>';
                 echo '</form>';
 
-                // Formulaire pour supprimer l'article
-                echo '<form method="POST" action="">';
+                // Formulaire pour supprimer l'article (tout à droite)
+                echo '<form method="POST" action="" class="ms-auto">';
                 echo '<input type="hidden" name="idProd" value="' . $id . '">';
                 echo '<button type="submit" name="action" value="delete" class="btn btn-danger">Supprimer</button>';
                 echo '</form>';
-                echo '</nav>';
-                echo '<SPACER>';
-                $total += $totalGlobal;
+
+                echo '</div>';  // Fin des actions (boutons +, -, supprimer)
+                echo '</div>';  // Fin de l'élément produit
+                $total += $product['prix'] * $product['quantity'];
             }
         } else {
             echo '<p>Votre panier est vide.</p>';
@@ -160,14 +163,10 @@
         echo '<h2>Total du panier : ' . $total . ' €</h2>';
         ?>
     </main>
-    <nav>
-        <a href="index.php" class="btn btn-secondary">
-            Continuer les achats
-        </a>
-        <a href="panierPayer.php" class="btn btn-secondary">
-            Payer
-        </a>
 
+    <nav>
+        <a href="index.php" class="btn btn-secondary">Continuer les achats</a>
+        <a href="panierPayer.php" class="btn btn-secondary">Payer</a>
     </nav>
 </body>
 
