@@ -1,4 +1,5 @@
 <?php session_start(); // Démarrer la session 
+ob_start(); // Activer le tampon de sortie
 ?>
 <html lang="fr">
 
@@ -42,8 +43,33 @@
             if (isset($_POST['action'])) {
                 switch ($_POST['action']) {
                     case 'add':
-                        $_SESSION['panier'][$idProd]['quantity']++;
+                        // Requête SQL pour récupérer la quantité disponible du produit
+                        $sql = "SELECT quantiter FROM produit WHERE idProd = ?";
+                        $stmt = mysqli_prepare($link, $sql);
+                        mysqli_stmt_bind_param($stmt, 'i', $idProd);
+                        mysqli_stmt_execute($stmt);
+                        $result = mysqli_stmt_get_result($stmt);
+                        
+                        // Vérification si le produit existe dans la base de données
+                        if ($result && $product = mysqli_fetch_assoc($result)) {
+                            $quantiteDispo = $product['quantiter'];
+        
+                            // Vérification si le produit est dans le panier et si on peut encore ajouter une unité
+                            if (isset($_SESSION['panier'][$idProd])) {
+                                if ($_SESSION['panier'][$idProd]['quantity'] == $quantiteDispo) {
+                                    echo "<div class='alert alert-warning'>Quantité maximale atteinte pour ce produit !</div>";
+                                } else {
+                                    $_SESSION['panier'][$idProd]['quantity']++;
+                                }
+                            } else {
+                                // Si le produit n'est pas encore dans le panier, l'ajouter
+                                $_SESSION['panier'][$idProd]['quantity'] = 1;
+                            }
+                        } else {
+                            echo "<div class='alert alert-danger'>Le produit n'existe pas ou n'a pas pu être trouvé.</div>";
+                        }
                         break;
+                    
                     case 'remove':
                         if ($_SESSION['panier'][$idProd]['quantity'] > 1) {
                             $_SESSION['panier'][$idProd]['quantity']--;
@@ -54,7 +80,7 @@
                     case 'delete':
                         unset($_SESSION['panier'][$idProd]);
                         break;
-                }
+                    }
             } else {
                 // Requête SQL pour récupérer les informations du produit
                 $sql = "SELECT * FROM produit WHERE idProd = $idProd";
@@ -171,3 +197,8 @@
 </body>
 
 </html>
+
+<?php
+// À la fin du script PHP
+ob_end_flush(); // Envoyer tout le contenu tamponné
+?>
