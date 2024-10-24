@@ -1,4 +1,5 @@
-<?php session_start(); // Démarrer la session 
+<?php
+session_start(); // Démarrer la session 
 ?>
 <html lang="fr">
 
@@ -40,9 +41,18 @@
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $idProd = $_POST['idProd'];
             if (isset($_POST['action'])) {
+                // Requête SQL pour récupérer la quantité disponible
+                $sql = "SELECT quantiter FROM produit WHERE idProd = $idProd";
+                $result = mysqli_query($link, $sql);
+                $quantiterProd = mysqli_fetch_assoc($result);
+                $quantiterDispo = $quantiterProd['quantiter'];
+
                 switch ($_POST['action']) {
                     case 'add':
-                        $_SESSION['panier'][$idProd]['quantity']++;
+                        // Vérification du stock avant d'ajouter
+                        if (isset($_SESSION['panier'][$idProd]) && $_SESSION['panier'][$idProd]['quantity'] < $quantiterDispo) {
+                            $_SESSION['panier'][$idProd]['quantity']++;
+                        }
                         break;
                     case 'remove':
                         if ($_SESSION['panier'][$idProd]['quantity'] > 1) {
@@ -62,23 +72,25 @@
                 $product = mysqli_fetch_assoc($result);
 
                 if ($product) {
-                    // Initialiser le panier si nécessaire
+                    // Récupérer la quantité disponible
+                    $quantiterDispo = $product['quantiter'];
+
+                    // Initialiser le panier
                     if (!isset($_SESSION['panier'])) {
                         $_SESSION['panier'] = [];
                     }
 
-                    // Chemin vers l'image du produit
-                    $srcImagePath = $product["image"];
-
                     // Vérifier si le produit est déjà dans le panier
                     if (isset($_SESSION['panier'][$idProd])) {
-                        // Si le produit existe, augmenter la quantité
-                        $_SESSION['panier'][$idProd]['quantity']++;
+                        // Si la quantité actuelle dans le panier est inférieure à la quantité disponible
+                        if ($_SESSION['panier'][$idProd]['quantity'] < $quantiterDispo) {
+                            $_SESSION['panier'][$idProd]['quantity']++;
+                        }
                     } else {
                         $_SESSION['panier'][$idProd] = [
                             'libelle' => $product['libelle'],
                             'prix' => $product['prix'],
-                            'image' => $srcImagePath,
+                            'image' => $product["image"],
                             'quantity' => 1
                         ];
                     }
@@ -104,7 +116,7 @@
                 // Vérification de l'image avant affichage
                 if (!empty($product['image'])) {
                     $cheminImage = htmlspecialchars($product['image']);
-                    $nomImage = basename($cheminImage);  // Récupérer uniquement le nom du fichier image
+                    $nomImage = basename($cheminImage);
                     $cheminVignette = "thumbnails/" . $nomImage;
 
                     if (file_exists($cheminVignette)) {
@@ -123,7 +135,6 @@
                 echo '<h4>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</h4>';
                 echo '</div>';
 
-                // Actions pour la quantité (+, -) et suppression
                 echo '<div class="d-flex align-items-center">';
 
                 // Formulaire pour ajouter une quantité
@@ -131,11 +142,10 @@
                 echo '<input type="hidden" name="idProd" value="' . $id . '">';
                 echo '<button type="submit" name="action" value="add" class="btn ';
 
-                // Si le stock est atteint, appliquer la classe `btn-secondary` au lieu de `btn-success`
                 if ($product['quantity'] >= $quantiterDispo) {
-                    echo 'btn-secondary" disabled';  // Désactiver le bouton et le rendre gris
+                    echo 'btn-secondary" disabled';  // Désactive le bouton et le rend gris
                 } else {
-                    echo 'btn-success"';  // Sinon, appliquer le style de succès vert
+                    echo 'btn-success"';  // Applique le style de succès vert
                 }
 
                 echo '>+</button>';
@@ -147,14 +157,14 @@
                 echo '<button type="submit" name="action" value="remove" class="btn btn-warning">-</button>';
                 echo '</form>';
 
-                // Formulaire pour supprimer l'article (tout à droite)
+                // Formulaire pour supprimer l'article
                 echo '<form method="POST" action="" class="ms-auto">';
                 echo '<input type="hidden" name="idProd" value="' . $id . '">';
                 echo '<button type="submit" name="action" value="delete" class="btn btn-danger">Supprimer</button>';
                 echo '</form>';
 
-                echo '</div>';  // Fin des actions (boutons +, -, supprimer)
-                echo '</div>';  // Fin de l'élément produit
+                echo '</div>';
+                echo '</div>';
                 $total += $product['prix'] * $product['quantity'];
             }
         } else {
