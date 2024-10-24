@@ -41,7 +41,7 @@
     include 'createVignette.php';
 
     // Requête SQL pour récupérer les produits
-    $sql = "SELECT idProd, libelle, prix, descriptif, image, vignette FROM produit";
+    $sql = "SELECT idProd, libelle, prix, descriptif, image, quantiter FROM produit";
     $result = mysqli_query($link, $sql);
 
     if (mysqli_num_rows($result) > 0) {
@@ -51,7 +51,7 @@
         while ($row = mysqli_fetch_assoc($result)) {
             // Génération de la carte pour chaque produit
             // Dimensions souhaitées pour la vignette
-            $thumbWidth = 150;
+            $thumbWidth = 50;
             $thumbHeight = 50;
 
             // Chemin vers l'image source
@@ -66,38 +66,51 @@
 
             // Afficher la vignette
             echo '
-    <div class="col-md-3 mb-4 d-flex justify-content-center">
-        <div class="card clickable-card" data-bs-toggle="modal" data-bs-target="#modal' . $row["idProd"] . '" style="width: 18rem;">
-            <img src="' . $thumbImagePath . '" class="card-img-top" alt="' . $row["libelle"] . '">
-            <div class="card-body">
-                <h5 class="card-title">' . $row["libelle"] . '</h5>
-                <p class="card-text">' . substr($row["descriptif"], 0, 100) . '...</p>
-                <p class="card-text"> Prix : ' . $row["prix"] . ' € </p>
-                <form method="POST" action="panier.php">
-                     <input type="hidden" name="idProd" value="' . $row["idProd"] . '">
-                     <button type="submit" class="btn btn-primary">Ajouter au panier</button>
-                </form>
-            </div>
-        </div>
-    </div>
+                <div class="col-md-3 mb-4 d-flex justify-content-center">
+                    <div class="card clickable-card" data-bs-toggle="modal" data-bs-target="#modal' . $row["idProd"] . '" style="width: 18rem;">
+                        <img src="' . $thumbImagePath . '" class="card-img-top" alt="' . $row["libelle"] . '">
+                        <div class="card-body">
+                            <h5 class="card-title">' . $row["libelle"] . '</h5>
+                            <p class="card-text">' . substr($row["descriptif"], 0, 100) . '...</p>
+                            <p class="card-text"> Prix : ' . $row["prix"] . ' € </p>';
 
-    <div class="modal fade" id="modal' . $row["idProd"] . '" tabindex="-1" aria-labelledby="modalLabel' . $row["idProd"] . '" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel' . $row["idProd"] . '">' . $row["libelle"] . '</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img src="' . $srcImagePath . '" class="img-fluid mb-3" alt="' . $row["libelle"] . '">
-                    <p>' . $row["descriptif"] . '</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                </div>
-            </div>
-        </div>
-    </div>';
+            if ($row["quantiter"] > 0) {
+                echo '<p class="card-text"> Disponibles : ' . $row["quantiter"] . '</p>';
+                echo '
+                    <form method="POST" action="panier.php">
+                        <input type="hidden" name="idProd" value="' . $row["idProd"] . '">
+                        <button type="submit" class="btn btn-primary">Ajouter au panier</button>
+                    </form>';
+            } else {
+                // Si la quantité est 0, afficher "Hors stock" et désactiver le bouton
+                echo '<p class="card-text text-danger">Hors stock</p>';
+                echo '<button class="btn btn-secondary" disabled>Ajouter au panier</button>';
+            }
+
+            echo '
+                        </div>
+                    </div>
+                </div>';
+
+            // Code du modal
+            echo '
+                <div class="modal fade" id="modal' . $row["idProd"] . '" tabindex="-1" aria-labelledby="modalLabel' . $row["idProd"] . '" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalLabel' . $row["idProd"] . '">' . $row["libelle"] . '</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="' . $srcImagePath . '" class="img-fluid mb-3" alt="' . $row["libelle"] . '">
+                                <p>' . $row["descriptif"] . '</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>';
         }
 
         echo '</div></main>';

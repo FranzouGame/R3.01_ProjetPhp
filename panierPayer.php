@@ -1,4 +1,5 @@
 <?php session_start(); // Démarrer la session
+include 'connexion.php'; // Inclusion de la connexion à la base de données
 ?>
 <html lang="fr">
 
@@ -48,7 +49,7 @@
                 $erreur['numCarte'] = 'Le numéro de carte doit contenir que des chiffres !';
             }
 
-            //Vérification du numéro csc (3 chiffres)
+            // Vérification du numéro csc (3 chiffres)
             if (strlen($csc) !== 3) {
                 $erreur['csc'] = 'Le csc doit êtres composé de 3 chiffres !';
             } elseif (!ctype_digit($csc)) {
@@ -64,11 +65,9 @@
                 $month = (int) $month;
                 $year = (int) $year + 2000; // Convertir en format année à 4 chiffres
 
-                // Créer des objets DateTime pour comparer la date d'expiration avec la date actuelle + 3 mois
                 $dateActuelle = new DateTime();
                 $dateValide = (clone $dateActuelle)->modify('+3 months');
 
-                // Date d'expiration fournie
                 $dateExpiration = DateTime::createFromFormat('Y-m', "$year-$month");
 
                 if ($dateExpiration < $dateValide) {
@@ -81,16 +80,52 @@
             // Si aucune erreur, traiter le formulaire
             if (empty($erreur['numCarte']) && empty($erreur['csc']) && empty($erreur['dateDexpi'])) {
                 if (isset($_SESSION['panier'])) {
-                    unset($_SESSION['panier']); // Vider le panier
+
+                    // Commencer la transaction
+                    mysqli_begin_transaction($link);
+
+                    try {
+                        // Parcourir le panier et mettre à jour la base de données
+                        foreach ($_SESSION['panier'] as $idProd => $product) {
+                            $quantiteAchetee = $product['quantity'];
+
+                            // Requête pour récupérer la quantité actuelle
+                            $sqlQuantite = "SELECT quantiter FROM produit WHERE idProd = $idProd";
+                            $resultQuantite = mysqli_query($link, $sqlQuantite);
+                            $produit = mysqli_fetch_assoc($resultQuantite);
+
+                            if ($produit) {
+                                $quantiteDisponible = $produit['quantiter'];
+
+                                if ($quantiteDisponible >= $quantiteAchetee) {
+                                    // Mise à jour de la quantité
+                                    $nouvelleQuantite = $quantiteDisponible - $quantiteAchetee;
+                                    $sqlUpdate = "UPDATE produit SET quantiter = $nouvelleQuantite WHERE idProd = $idProd";
+                                    mysqli_query($link, $sqlUpdate);
+                                } else {
+                                    throw new Exception("Quantité insuffisante pour le produit ID: $idProd");
+                                }
+                            }
+                        }
+
+                        // Si tout est bon, valider la transaction
+                        mysqli_commit($link);
+
+                        // Vider le panier
+                        unset($_SESSION['panier']);
+
+                        // Redirection après succès
+                        header("Refresh: 2; url=panier.php");
+                        echo "<div class='alert alert-success'>Le paiement a été validé avec succès et les quantités ont été mises à jour.</div>";
+                    } catch (Exception $e) {
+                        // Si une erreur se produit, annuler la transaction
+                        mysqli_rollback($link);
+                        echo "<div class='alert alert-danger'>Erreur lors de la mise à jour des quantités: " . $e->getMessage() . "</div>";
+                    }
                 }
-                header("Refresh: 2; url=panier.php"); // Redirection vers index au bout de 2 secondes
-                echo "<div class='alert alert-success'>Le paiement a été validé avec succès.</div>";
             }
         }
         ?>
-
-
-
     </main>
 
     <div class="container mt-5">
@@ -121,7 +156,6 @@
             <button type="submit" class="btn btn-primary mt-5">Valider le Paiement</button>
         </form>
     </div>
-
 
 </body>
 

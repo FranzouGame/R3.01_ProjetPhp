@@ -42,7 +42,6 @@
         // Si le formulaire a été soumis
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $idProd = $_POST['idProd'];
-
             if (isset($_POST['action'])) {
                 switch ($_POST['action']) {
                     case 'add':
@@ -88,6 +87,8 @@
                     }
                 }
             }
+            header('Location: panier.php');
+            exit();
         }
 
         // Affichage des produits du panier
@@ -95,10 +96,27 @@
             echo '<h1>Votre panier</h1>';
             foreach ($_SESSION['panier'] as $id => $product) {
 
+                // Récupérer la quantité disponible pour chaque produit
+                $sql = "SELECT quantiter FROM produit WHERE idProd = $id";
+                $result = mysqli_query($link, $sql);
+                $quantiterProd = mysqli_fetch_assoc($result);
+                $quantiterDispo = $quantiterProd['quantiter'];
+
                 echo '<nav class="navbar navbar-expand-lg bg-light" data-bs-theme="light">';
                 // Vérification de l'image avant affichage
                 if (!empty($product['image'])) {
-                    echo '<img src="' . htmlspecialchars($product['image']) . '" alt="' . htmlspecialchars($product['libelle']) . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;">';
+
+                    $cheminImage = htmlspecialchars($product['image']);
+                    $nomImage = basename($cheminImage);  // Récupérer uniquement le nom du fichier image
+                    $cheminVignette = "thumbnails/" . $nomImage;
+
+                    if (file_exists($cheminVignette)) {
+                        // Afficher la vignette
+                        echo '<img src="' . $cheminVignette . '" alt="' . htmlspecialchars($product['libelle']) . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;">';
+                    } else {
+                        // Si la vignette n'existe pas, afficher l'image d'origine
+                        echo '<img src="' . $cheminImage . '" alt="' . htmlspecialchars($product['libelle']) . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;">';
+                    }
                 } else {
                     echo '<p>Image non disponible</p>';
                 }
@@ -107,9 +125,18 @@
                 echo '<p>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</p>';
 
                 // Formulaire pour ajouter une quantité
-                echo '<form method="POST" action=""  class="ml-5">';
+                echo '<form method="POST" action="" class="ml-5">';
                 echo '<input type="hidden" name="idProd" value="' . $id . '">';
-                echo '<button type="submit" name="action" value="add" class="btn btn-success">+</button>';
+                echo '<button type="submit" name="action" value="add" class="btn ';
+
+                // Si le stock est atteint, appliquer la classe `btn-secondary` au lieu de `btn-success`
+                if ($product['quantity'] >= $quantiterDispo) {
+                    echo 'btn-secondary" disabled';  // Désactiver le bouton et le rendre gris
+                } else {
+                    echo 'btn-success"';  // Sinon, appliquer le style de succès vert
+                }
+
+                echo '>+</button>';
                 echo '</form>';
 
                 // Formulaire pour retirer une quantité
