@@ -1,3 +1,5 @@
+DROP TABLE produit;
+
 CREATE TABLE produit(
 idProd numeric(10) PRIMARY KEY,
 libelle varchar(255),

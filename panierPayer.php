@@ -1,5 +1,6 @@
 <?php session_start(); // Démarrer la session
 include 'connexion.php'; // Inclusion de la connexion à la base de données
+ob_start(); // Activer le tampon de sortie
 ?>
 <html lang="fr">
 
@@ -115,8 +116,9 @@ include 'connexion.php'; // Inclusion de la connexion à la base de données
                         unset($_SESSION['panier']);
 
                         // Redirection après succès
-                        header("Refresh: 2; url=panier.php");
+                        header("Refresh: 5; url=panier.php");
                         echo "<div class='alert alert-success'>Le paiement a été validé avec succès et les quantités ont été mises à jour.</div>";
+                        exit();
                     } catch (Exception $e) {
                         // Si une erreur se produit, annuler la transaction
                         mysqli_rollback($link);
@@ -160,3 +162,8 @@ include 'connexion.php'; // Inclusion de la connexion à la base de données
 </body>
 
 </html>
+
+<?php
+// À la fin du script PHP
+ob_end_flush(); // Envoyer tout le contenu tamponné
+?>
