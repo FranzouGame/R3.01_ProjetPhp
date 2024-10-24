@@ -1,3 +1,5 @@
+<?php session_start(); // Démarrer la session 
+?>
 <html lang="fr">
 
 <head>
@@ -5,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
     <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
-    <title>Document</title>
+    <title>Paradis de l'aspi - panier</title>
 </head>
 
 <body>
@@ -22,75 +24,150 @@
                             <a class="nav-link active" aria-current="page" href="index.php">Accueil</a>
                         </li>
                     </ul>
-                    <a href="panier.php" class="btn btn-secondary">
-                        Panier
-                    </a>
+                    <a href="panier.php" class="btn btn-secondary">Panier</a>
                 </div>
             </div>
         </nav>
     </header>
 
-
-
     <main>
         <?php
-        session_start();
-
         // Inclusion du fichier de connexion
         include 'connexion.php';
+        $total = 0; // Initialisation du total
 
         // Si le formulaire a été soumis
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $idProd = $_POST['idProd'];
-
-            // Requête SQL pour récupérer les informations du produit
-            $sql = "SELECT * FROM produit WHERE idProd = $idProd";
-            $result = mysqli_query($link, $sql);
-            $product = mysqli_fetch_assoc($result);
-
-            if ($product) {
-                // Initialiser le panier si nécessaire
-                if (!isset($_SESSION['panier'])) {
-                    $_SESSION['panier'] = [];
+            if (isset($_POST['action'])) {
+                switch ($_POST['action']) {
+                    case 'add':
+                        $_SESSION['panier'][$idProd]['quantity']++;
+                        break;
+                    case 'remove':
+                        if ($_SESSION['panier'][$idProd]['quantity'] > 1) {
+                            $_SESSION['panier'][$idProd]['quantity']--;
+                        } else {
+                            unset($_SESSION['panier'][$idProd]);
+                        }
+                        break;
+                    case 'delete':
+                        unset($_SESSION['panier'][$idProd]);
+                        break;
                 }
+            } else {
+                // Requête SQL pour récupérer les informations du produit
+                $sql = "SELECT * FROM produit WHERE idProd = $idProd";
+                $result = mysqli_query($link, $sql);
+                $product = mysqli_fetch_assoc($result);
 
-                // Chemin vers l'image du produit
-                $srcImagePath = $product["image"];
+                if ($product) {
+                    // Initialiser le panier si nécessaire
+                    if (!isset($_SESSION['panier'])) {
+                        $_SESSION['panier'] = [];
+                    }
 
-                // Vérifier si le produit est déjà dans le panier
-                if (isset($_SESSION['panier'][$idProd])) {
-                    // Si le produit existe, augmenter la quantité
-                    $_SESSION['panier'][$idProd]['quantity']++;
-                } else {
-                    $_SESSION['panier'][$idProd] = [
-                        'libelle' => $product['libelle'],
-                        'prix' => $product['prix'],
-                        'image' => $srcImagePath,  // Utiliser la bonne variable
-                        'quantity' => 1
-                    ];
+                    // Chemin vers l'image du produit
+                    $srcImagePath = $product["image"];
+
+                    // Vérifier si le produit est déjà dans le panier
+                    if (isset($_SESSION['panier'][$idProd])) {
+                        // Si le produit existe, augmenter la quantité
+                        $_SESSION['panier'][$idProd]['quantity']++;
+                    } else {
+                        $_SESSION['panier'][$idProd] = [
+                            'libelle' => $product['libelle'],
+                            'prix' => $product['prix'],
+                            'image' => $srcImagePath,
+                            'quantity' => 1
+                        ];
+                    }
                 }
             }
+            header('Location: panier.php');
+            exit();
         }
 
         // Affichage des produits du panier
         if (isset($_SESSION['panier']) && !empty($_SESSION['panier'])) {
             echo '<h1>Votre panier</h1>';
             foreach ($_SESSION['panier'] as $id => $product) {
+
+                // Récupérer la quantité disponible pour chaque produit
+                $sql = "SELECT quantiter FROM produit WHERE idProd = $id";
+                $result = mysqli_query($link, $sql);
+                $quantiterProd = mysqli_fetch_assoc($result);
+                $quantiterDispo = $quantiterProd['quantiter'];
+
+                echo '<div class="d-flex justify-content-between align-items-center bg-light p-3 mb-3">';
+
                 // Vérification de l'image avant affichage
                 if (!empty($product['image'])) {
-                    echo '<img src="' . htmlspecialchars($product['image']) . '" alt="' . htmlspecialchars($product['libelle']) . '">';
+                    $cheminImage = htmlspecialchars($product['image']);
+                    $nomImage = basename($cheminImage);  // Récupérer uniquement le nom du fichier image
+                    $cheminVignette = "thumbnails/" . $nomImage;
+
+                    if (file_exists($cheminVignette)) {
+                        // Afficher la vignette
+                        echo '<img src="' . $cheminVignette . '" alt="' . htmlspecialchars($product['libelle']) . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;">';
+                    } else {
+                        // Si la vignette n'existe pas, afficher l'image d'origine
+                        echo '<img src="' . $cheminImage . '" alt="' . htmlspecialchars($product['libelle']) . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;">';
+                    }
                 } else {
                     echo '<p>Image non disponible</p>';
                 }
-                echo '<p>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</p>';
+
+                // Informations sur le produit et la quantité
+                echo '<div class="mx-3">';
+                echo '<h4>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</h4>';
+                echo '</div>';
+
+                // Actions pour la quantité (+, -) et suppression
+                echo '<div class="d-flex align-items-center">';
+
+                // Formulaire pour ajouter une quantité
+                echo '<form method="POST" action="" class="mx-2">';
+                echo '<input type="hidden" name="idProd" value="' . $id . '">';
+                echo '<button type="submit" name="action" value="add" class="btn ';
+
+                // Si le stock est atteint, appliquer la classe `btn-secondary` au lieu de `btn-success`
+                if ($product['quantity'] >= $quantiterDispo) {
+                    echo 'btn-secondary" disabled';  // Désactiver le bouton et le rendre gris
+                } else {
+                    echo 'btn-success"';  // Sinon, appliquer le style de succès vert
+                }
+
+                echo '>+</button>';
+                echo '</form>';
+
+                // Formulaire pour retirer une quantité
+                echo '<form method="POST" action="" class="mx-2">';
+                echo '<input type="hidden" name="idProd" value="' . $id . '">';
+                echo '<button type="submit" name="action" value="remove" class="btn btn-warning">-</button>';
+                echo '</form>';
+
+                // Formulaire pour supprimer l'article (tout à droite)
+                echo '<form method="POST" action="" class="ms-auto">';
+                echo '<input type="hidden" name="idProd" value="' . $id . '">';
+                echo '<button type="submit" name="action" value="delete" class="btn btn-danger">Supprimer</button>';
+                echo '</form>';
+
+                echo '</div>';  // Fin des actions (boutons +, -, supprimer)
+                echo '</div>';  // Fin de l'élément produit
+                $total += $product['prix'] * $product['quantity'];
             }
         } else {
             echo '<p>Votre panier est vide.</p>';
         }
-
+        echo '<h2>Total du panier : ' . $total . ' €</h2>';
         ?>
     </main>
 
+    <nav>
+        <a href="index.php" class="btn btn-secondary">Continuer les achats</a>
+        <a href="panierPayer.php" class="btn btn-secondary">Payer</a>
+    </nav>
 </body>
 
 </html>
