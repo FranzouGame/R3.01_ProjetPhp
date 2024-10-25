@@ -71,10 +71,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
 
         $oldImagePath = 'Images/' . $oldProduct['image'] ?? null;
+        $oldThumbnailPath = 'thumbnails/' . $oldProduct['image'] ?? null;
 
         // Conserver l'ancienne image si aucune nouvelle image n'est uploadée
         if (empty($imagePath)) {
-            $imagePath = $oldProduct['image'];
+            $imagePath = $oldImagePath;
+        } else {
+            if(file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+            if(file_exists($oldThumbnailPath)) {
+                unlink($oldThumbnailPath);
+            }
         }
 
         // Mise à jour du produit dans la base de données
