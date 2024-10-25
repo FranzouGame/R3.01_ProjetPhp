@@ -1,5 +1,5 @@
 <?php session_start(); // Démarrer la session
-include 'connexion.php'; // Inclusion de la connexion à la base de données
+include 'connexion.php'; // Ajout de la connexion à la base de données
 ob_start(); // Activer le tampon de sortie
 ?>
 <html lang="fr">
@@ -120,7 +120,7 @@ ob_start(); // Activer le tampon de sortie
                             }
                         }
 
-                        // Si tout est bon, valider la transaction
+                        // Si tout bon valider la transaction
                         mysqli_commit($link);
 
                         // Vider le panier
@@ -131,7 +131,7 @@ ob_start(); // Activer le tampon de sortie
                         echo "<div class='alert alert-success'>Le paiement a été validé avec succès et les quantités ont été mises à jour.</div>";
                         exit();
                     } catch (Exception $e) {
-                        // Si une erreur se produit, annuler la transaction
+                        // Si une erreur alors annuler la transaction
                         mysqli_rollback($link);
                         echo "<div class='alert alert-danger'>Erreur lors de la mise à jour des quantités: " . $e->getMessage() . "</div>";
                     }
@@ -175,6 +175,5 @@ ob_start(); // Activer le tampon de sortie
 </html>
 
 <?php
-// À la fin du script PHP
 ob_end_flush(); // Envoyer tout le contenu tamponné
 ?>

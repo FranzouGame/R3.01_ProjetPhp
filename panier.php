@@ -1,4 +1,5 @@
-<?php session_start(); // Démarrer la session 
+<?php
+session_start(); // Démarrer la session 
 ob_start(); // Activer le tampon de sortie
 ?>
 
@@ -48,95 +49,69 @@ ob_start(); // Activer le tampon de sortie
     <main>
         <div class="container mt-5">
             <?php
-            // Inclusion du fichier de connexion
+            // Ajout du fichier de connexion
             include 'connexion.php';
             $total = 0; // Initialisation du total
 
             // Si le formulaire a été soumis
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $idProd = $_POST['idProd'];
-                if (isset($_POST['action'])) {
-                    // Requête SQL pour récupérer la quantité disponible
-                    $sql = "SELECT quantiter FROM produit WHERE idProd = $idProd";
-                    $result = mysqli_query($link, $sql);
-                    $quantiterProd = mysqli_fetch_assoc($result);
-                    $quantiterDispo = $quantiterProd['quantiter'];
 
-                    switch ($_POST['action']) {
-                        case 'add':
-                            // Vérification du stock avant d'ajouter
-                            if (isset($_SESSION['panier'][$idProd]) && $_SESSION['panier'][$idProd]['quantity'] < $quantiterDispo) {
-                                $_SESSION['panier'][$idProd]['quantity']++;
-                            }
-                            // Requête SQL pour récupérer la quantité disponible du produit
-                            $sql = "SELECT quantiter FROM produit WHERE idProd = ?";
-                            $stmt = mysqli_prepare($link, $sql);
-                            mysqli_stmt_bind_param($stmt, 'i', $idProd);
-                            mysqli_stmt_execute($stmt);
-                            $result = mysqli_stmt_get_result($stmt);
+                // Requête SQL pour récupérer les détails du produit
+                $sql = "SELECT quantiter, libelle, prix, image FROM produit WHERE idProd = ?";
+                $stmt = mysqli_prepare($link, $sql);
+                mysqli_stmt_bind_param($stmt, 'i', $idProd);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
 
-                            // Vérification si le produit existe dans la base de données
-                            if ($result && $product = mysqli_fetch_assoc($result)) {
-                                $quantiteDispo = $product['quantiter'];
+                if ($result && $product = mysqli_fetch_assoc($result)) {
+                    $quantiterDispo = $product['quantiter'];
 
-                                // Vérification si le produit est dans le panier et si on peut encore ajouter une unité
+                    // Initialiser le panier s'il n'existe pas
+                    if (!isset($_SESSION['panier'])) {
+                        $_SESSION['panier'] = [];
+                    }
+
+                    // Vérifier l'action
+                    if (isset($_POST['action'])) {
+                        switch ($_POST['action']) {
+                            case 'add':
+                                // Vérifier si le produit est déjà dans le panier
                                 if (isset($_SESSION['panier'][$idProd])) {
-                                    if ($_SESSION['panier'][$idProd]['quantity'] == $quantiteDispo) {
-                                        echo "<div class='alert alert-warning'>Quantité maximale atteinte pour ce produit !</div>";
-                                    } else {
+                                    // Vérification si la quantité maximale peut être atteinte
+                                    if ($_SESSION['panier'][$idProd]['quantity'] < $quantiterDispo) {
                                         $_SESSION['panier'][$idProd]['quantity']++;
+                                    } else {
+                                        echo "<div class='alert alert-warning'>Quantité maximale atteinte pour ce produit !</div>";
                                     }
                                 } else {
-                                    // Si le produit n'est pas encore dans le panier, l'ajouter
-                                    $_SESSION['panier'][$idProd]['quantity'] = 1;
+                                    // Ajouter le produit au panier
+                                    $_SESSION['panier'][$idProd] = [
+                                        'libelle' => $product['libelle'],
+                                        'prix' => $product['prix'],
+                                        'image' => $product['image'],
+                                        'quantity' => 1
+                                    ];
                                 }
-                            } else {
-                                echo "<div class='alert alert-danger'>Le produit n'existe pas ou n'a pas pu être trouvé.</div>";
-                            }
-                            break;
+                                break;
 
-                        case 'remove':
-                            if ($_SESSION['panier'][$idProd]['quantity'] > 1) {
-                                $_SESSION['panier'][$idProd]['quantity']--;
-                            } else {
+                            case 'remove':
+                                if (isset($_SESSION['panier'][$idProd]) && $_SESSION['panier'][$idProd]['quantity'] > 1) {
+                                    $_SESSION['panier'][$idProd]['quantity']--;
+                                } else {
+                                    unset($_SESSION['panier'][$idProd]);
+                                }
+                                break;
+
+                            case 'delete':
                                 unset($_SESSION['panier'][$idProd]);
-                            }
-                            break;
-                        case 'delete':
-                            unset($_SESSION['panier'][$idProd]);
-                            break;
+                                break;
+                        }
                     }
                 } else {
-                    // Requête SQL pour récupérer les informations du produit
-                    $sql = "SELECT * FROM produit WHERE idProd = $idProd";
-                    $result = mysqli_query($link, $sql);
-                    $product = mysqli_fetch_assoc($result);
-
-                    if ($product) {
-                        // Récupérer la quantité disponible
-                        $quantiterDispo = $product['quantiter'];
-
-                        // Initialiser le panier
-                        if (!isset($_SESSION['panier'])) {
-                            $_SESSION['panier'] = [];
-                        }
-
-                        // Vérifier si le produit est déjà dans le panier
-                        if (isset($_SESSION['panier'][$idProd])) {
-                            // Si la quantité actuelle dans le panier est inférieure à la quantité disponible
-                            if ($_SESSION['panier'][$idProd]['quantity'] < $quantiterDispo) {
-                                $_SESSION['panier'][$idProd]['quantity']++;
-                            }
-                        } else {
-                            $_SESSION['panier'][$idProd] = [
-                                'libelle' => $product['libelle'],
-                                'prix' => $product['prix'],
-                                'image' => $product["image"],
-                                'quantity' => 1
-                            ];
-                        }
-                    }
+                    echo "<div class='alert alert-danger'>Le produit n'existe pas ou n'a pas pu être trouvé.</div>";
                 }
+
                 header('Location: panier.php');
                 exit();
             }
@@ -145,16 +120,18 @@ ob_start(); // Activer le tampon de sortie
             if (isset($_SESSION['panier']) && !empty($_SESSION['panier'])) {
                 echo '<h1>Votre panier</h1>';
                 foreach ($_SESSION['panier'] as $id => $product) {
-
                     // Récupérer la quantité disponible pour chaque produit
-                    $sql = "SELECT quantiter FROM produit WHERE idProd = $id";
-                    $result = mysqli_query($link, $sql);
+                    $sql = "SELECT quantiter FROM produit WHERE idProd = ?";
+                    $stmt = mysqli_prepare($link, $sql);
+                    mysqli_stmt_bind_param($stmt, 'i', $id);
+                    mysqli_stmt_execute($stmt);
+                    $result = mysqli_stmt_get_result($stmt);
                     $quantiterProd = mysqli_fetch_assoc($result);
                     $quantiterDispo = $quantiterProd['quantiter'];
 
                     echo '<div class="d-flex justify-content-between align-items-center bg-light p-3 mb-3">';
 
-                    // Vérification de l'image avant affichage
+                    // Vérification de l'image avant de l'afficher
                     if (!empty($product['image'])) {
                         $cheminImage = htmlspecialchars($product['image']);
                         $nomImage = basename($cheminImage);
@@ -164,21 +141,20 @@ ob_start(); // Activer le tampon de sortie
                             // Afficher la vignette
                             echo '<img src="' . $cheminVignette . '" alt="' . htmlspecialchars($product['libelle']) . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;">';
                         } else {
-                            // Si la vignette n'existe pas, afficher l'image d'origine
+                            // Si pas vignette alors afficher l'image d'origine
                             echo '<img src="' . $cheminImage . '" alt="' . htmlspecialchars($product['libelle']) . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;">';
                         }
                     } else {
                         echo '<p>Image non disponible</p>';
                     }
 
-                    // Informations sur le produit et la quantité
                     echo '<div class="mx-3">';
                     echo '<h4>' . htmlspecialchars($product['libelle']) . ' - ' . htmlspecialchars($product['quantity']) . ' x ' . htmlspecialchars($product['prix']) . ' €</h4>';
                     echo '</div>';
 
                     echo '<div class="d-flex align-items-center">';
 
-                    // Formulaire pour ajouter une quantité
+                    // Formulaire pour ajouter augmenter la quantité
                     echo '<form method="POST" action="" class="mx-2">';
                     echo '<input type="hidden" name="idProd" value="' . $id . '">';
                     echo '<button type="submit" name="action" value="add" class="btn ';
@@ -186,13 +162,13 @@ ob_start(); // Activer le tampon de sortie
                     if ($product['quantity'] >= $quantiterDispo) {
                         echo 'btn-secondary" disabled';  // Désactive le bouton et le rend gris
                     } else {
-                        echo 'btn-success"';  // Applique le style de succès vert
+                        echo 'btn-success"';  // Applique le style de succès donc le rend vert
                     }
 
                     echo '>+</button>';
                     echo '</form>';
 
-                    // Formulaire pour retirer une quantité
+                    // Formulaire pour retirer la quantité
                     echo '<form method="POST" action="" class="mx-2">';
                     echo '<input type="hidden" name="idProd" value="' . $id . '">';
                     echo '<button type="submit" name="action" value="remove" class="btn btn-warning">-</button>';

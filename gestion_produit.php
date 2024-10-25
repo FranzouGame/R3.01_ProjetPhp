@@ -39,10 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Rediriger vers le backoffice après action
+    // Redirige vers le backoffice après action
     header('Location: backoffice.php');
     exit();
 } else {
-    // Rediriger vers le backoffice de toute façon
+    // Redirige vers le backoffice de toute façon
     header('Location: backoffice.php');
 }

@@ -52,7 +52,7 @@ ob_start(); // Activer le tampon de sortie
                     <button type="submit" name="action" value="ajouter" class="btn btn-primary btn-sm">Ajouter un produit</button>
                   </form>';
 
-            // Inclusion du fichier de connexion
+            // Ajout du fichier de connexion
             include 'connexion.php';
 
             // Requête pour récupérer les produits
