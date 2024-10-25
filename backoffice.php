@@ -72,9 +72,13 @@ ob_start(); // Activer le tampon de sortie
                 </thead>
                 <tbody>";
 
+
                 while ($row = mysqli_fetch_assoc($result)) {
+                    $nomImage = basename($row['image']);
+                    $cheminVignette = "thumbnails/" . $nomImage;
+
                     echo '<tr>
-                            <td><img src="thumbnails/' . $row['image'] . '" alt="' . $row["libelle"] . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;"></td>
+                            <td><img src="' . $cheminVignette . '" alt="' . $row["libelle"] . '" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;"></td>
                             <td>' . $row["idProd"] . '</td>
                             <td>' . $row['libelle'] . '</td>
                             <td>' . $row['descriptif'] . '</td>
