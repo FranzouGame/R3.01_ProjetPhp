@@ -90,6 +90,7 @@
                     echo '
                     <form method="POST" action="panier.php">
                         <input type="hidden" name="idProd" value="' . $row["idProd"] . '">
+                        <input type="hidden" name="action" value="add">
                         <button type="submit" class="btn btn-primary">Ajouter au panier</button>
                     </form>';
                 } else {
