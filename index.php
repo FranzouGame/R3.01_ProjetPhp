@@ -43,39 +43,40 @@
         </nav>
     </header>
 
-    <h1 class="container mt-5">Articles</h1>
+    <div class="container mt-5">
+        <h1>Articles</h1>
 
-    <?php
-    // Inclusion du fichier de connexion
-    include 'connexion.php';
-    include 'createVignette.php';
+        <?php
+        // Inclusion du fichier de connexion et de la creation de vignette
+        include 'connexion.php';
+        include 'createVignette.php';
 
-    // Requête SQL pour récupérer les produits
-    $sql = "SELECT idProd, libelle, prix, descriptif, image, quantiter FROM produit";
-    $result = mysqli_query($link, $sql);
+        // Requête SQL pour récupérer les produits
+        $sql = "SELECT idProd, libelle, prix, descriptif, image, quantiter FROM produit";
+        $result = mysqli_query($link, $sql);
 
-    if (mysqli_num_rows($result) > 0) {
-        echo '<main class="container"><div class="row justify-content-center">';
+        if (mysqli_num_rows($result) > 0) {
+            echo '<main class="container"><div class="row justify-content-center">';
 
-        // Boucle pour chaque produit
-        while ($row = mysqli_fetch_assoc($result)) {
-            // Génération de la carte pour chaque produit
-            // Dimensions souhaitées pour la vignette
-            $thumbWidth = 50;
-            $thumbHeight = 50;
+            // Boucle pour chaque produit
+            while ($row = mysqli_fetch_assoc($result)) {
+                // Génération de la carte pour chaque produit
+                // Dimensions souhaitées pour la vignette
+                $thumbWidth = 50;
+                $thumbHeight = 50;
 
-            // Chemin vers l'image source
-            $srcImagePath = $row["image"];
-            // Chemin vers la vignette
-            $thumbImagePath = 'thumbnails/' . basename($srcImagePath); // Assurez-vous que le dossier existe
+                // Chemin vers l'image source
+                $srcImagePath = 'Images/' . $row["image"];
+                // Chemin vers la vignette
+                $thumbImagePath = 'thumbnails/' .  $row["image"];
 
-            // Créer la vignette si elle n'existe pas déjà
-            if (!file_exists($thumbImagePath)) {
-                createThumbnail($srcImagePath, $thumbImagePath, $thumbWidth, $thumbHeight);
-            };
+                // Créer la vignette si elle n'existe pas déjà
+                if (!file_exists($thumbImagePath)) {
+                    createThumbnail($srcImagePath, $thumbImagePath, $thumbWidth, $thumbHeight);
+                };
 
-            // Afficher la vignette
-            echo '
+                // Afficher la vignette
+                echo '
                 <div class="col-md-3 mb-4 d-flex justify-content-center">
                     <div class="card clickable-card" data-bs-toggle="modal" data-bs-target="#modal' . $row["idProd"] . '" style="width: 18rem;">
                         <img src="' . $thumbImagePath . '" class="card-img-top" alt="' . $row["libelle"] . '">
@@ -84,26 +85,26 @@
                             <p class="card-text">' . substr($row["descriptif"], 0, 100) . '...</p>
                             <p class="card-text"> Prix : ' . $row["prix"] . ' € </p>';
 
-            if ($row["quantiter"] > 0) {
-                echo '<p class="card-text"> Disponibles : ' . $row["quantiter"] . '</p>';
-                echo '
+                if ($row["quantiter"] > 0) {
+                    echo '<p class="card-text"> Disponibles : ' . $row["quantiter"] . '</p>';
+                    echo '
                     <form method="POST" action="panier.php">
                         <input type="hidden" name="idProd" value="' . $row["idProd"] . '">
                         <button type="submit" class="btn btn-primary">Ajouter au panier</button>
                     </form>';
-            } else {
-                // Si la quantité est 0, afficher "Hors stock" et désactiver le bouton
-                echo '<p class="card-text text-danger">Hors stock</p>';
-                echo '<button class="btn btn-secondary" disabled>Ajouter au panier</button>';
-            }
+                } else {
+                    // Si la quantité est 0, afficher "Hors stock" et désactiver le bouton
+                    echo '<p class="card-text text-danger">Hors stock</p>';
+                    echo '<button class="btn btn-secondary" disabled>Ajouter au panier</button>';
+                }
 
-            echo '
+                echo '
                         </div>
                     </div>
                 </div>';
 
-            // Code du modal
-            echo '
+                // Code du modal
+                echo '
                 <div class="modal fade" id="modal' . $row["idProd"] . '" tabindex="-1" aria-labelledby="modalLabel' . $row["idProd"] . '" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -121,23 +122,23 @@
                         </div>
                     </div>
                 </div>';
+            }
+
+            echo '</div></main>';
+        } else {
+            echo "Aucun produit trouvé.";
         }
 
-        echo '</div></main>';
-    } else {
-        echo "Aucun produit trouvé.";
-    }
-
-    // Fermeture de la connexion
-    mysqli_close($link);
-    ?>
+        // Fermeture de la connexion
+        mysqli_close($link);
+        ?>
 
 
-    <!-- Bootstrap 4.6.2 JS and dependencies (jQuery and Popper.js) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.2/js/bootstrap.min.js"></script>
-
+        <!-- Bootstrap 4.6.2 JS and dependencies (jQuery and Popper.js) -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.2/js/bootstrap.min.js"></script>
+    </div>
 </body>
 
 

@@ -48,6 +48,9 @@ ob_start(); // Activer le tampon de sortie
         if (isset($_SESSION['username'])) {
             echo "<h1>Bienvenue dans le backoffice, " . $_SESSION['username'] . "!</h1>";
             echo "<p>C'est ici que vous pourrez gérer les produits dans la base de données.</p>";
+            echo '<form action="ajouter_produit.php" method="post" class="d-inline">
+                    <button type="submit" name="action" value="ajouter" class="btn btn-primary btn-sm">Ajouter un produit</button>
+                  </form>';
 
             // Inclusion du fichier de connexion
             include 'connexion.php';
@@ -89,7 +92,13 @@ ob_start(); // Activer le tampon de sortie
                                     <input type="hidden" name="idProd" value="' . $row['idProd'] . '">
                                     <button type="submit" name="action" value="plus" class="btn btn-success btn-sm">+</button>
                                     <button type="submit" name="action" value="moins" class="btn btn-warning btn-sm" ' . ($row['quantiter'] <= 0 ? 'disabled' : '') . '> - </button>
-                                    <button type="submit" name="action" value="modifier" class="btn btn-primary btn-sm">Modifier</button>
+                                </form>
+                                <form action="modifier_produit.php" method="post" class="d-inline">
+                                    <input type="hidden" name="idProd" value="' . $row['idProd'] . '">
+                                    <button type="submit" name="action" class="btn btn-primary btn-sm">Modifier</button>
+                                </form>
+                                <form action="gestion_produit.php" method="post" class="d-inline">
+                                    <input type="hidden" name="idProd" value="' . $row['idProd'] . '">
                                     <button type="submit" name="action" value="supprimer" class="btn btn-danger btn-sm">Supprimer</button>
                                 </form>
                             </td>
@@ -101,6 +110,9 @@ ob_start(); // Activer le tampon de sortie
             } else {
                 echo "<p>Aucun produit disponible dans la base de données.</p>";
             }
+            echo '<form action="ajouter_produit.php" method="post" class="d-inline">
+                    <button type="submit" name="action" value="ajouter" class="btn btn-primary btn-sm">Ajouter un produit</button>
+                  </form>';
         } else {
             // Si l'utilisateur n'est pas connecté, afficher le formulaire de connexion
             echo '<h1>Connexion au Backoffice</h1>';

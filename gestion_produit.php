@@ -16,11 +16,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         header("Location: modifier_produit.php?id=$idProd");
         exit();
     } elseif ($action == 'supprimer') {
-        // Supprimer un produit de la base
-        mysqli_query($link, "DELETE FROM produit WHERE idProd = $idProd");
+        // Récupère le chemin de l'image avant la suppression
+        $result = mysqli_query($link, "SELECT image FROM produit WHERE idProd = $idProd");
+        $row = mysqli_fetch_assoc($result);
+
+        if ($row) {
+            $cheminImage = $row['image'];
+            $nomImage = basename($cheminImage);
+            $cheminOriginal = "images/" . $nomImage;
+            $cheminVignette = "thumbnails/" . $nomImage;
+
+            // Supprime les fichiers d'image s'ils existent
+            if (file_exists($cheminOriginal)) {
+                unlink($cheminOriginal);
+            }
+            if (file_exists($cheminVignette)) {
+                unlink($cheminVignette);
+            }
+
+            // Supprimer le produit de la base de données
+            mysqli_query($link, "DELETE FROM produit WHERE idProd = $idProd");
+        }
     }
 
     // Rediriger vers le backoffice après action
     header('Location: backoffice.php');
     exit();
+} else {
+    // Rediriger vers le backoffice de toute façon
+    header('Location: backoffice.php');
 }

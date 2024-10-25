@@ -215,7 +215,7 @@ ob_start(); // Activer le tampon de sortie
             ?>
             <nav>
                 <a href="index.php" class="btn btn-secondary">Continuer les achats</a>
-                <a href="panierPayer.php" class="btn btn-secondary">Payer</a>
+                <a href="panierPayer.php" class="btn btn-secondary <?php echo $total == 0 ? 'disabled' : ''; ?>">Payer</a>
             </nav>
         </div>
     </main>
