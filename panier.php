@@ -54,7 +54,7 @@ ob_start(); // Activer le tampon de sortie
             $total = 0; // Initialisation du total
 
             // Si le formulaire a été soumis
-            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idProd'])) {
                 $idProd = $_POST['idProd'];
 
                 // Requête SQL pour récupérer les détails du produit
@@ -200,6 +200,5 @@ ob_start(); // Activer le tampon de sortie
 </html>
 
 <?php
-// À la fin du script PHP
-ob_end_flush(); // Envoyer tout le contenu tamponné
+ob_end_flush(); // Terminer le tampon de sortie
 ?>
