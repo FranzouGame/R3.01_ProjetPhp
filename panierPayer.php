@@ -26,7 +26,18 @@ ob_start(); // Activer le tampon de sortie
                             <a class="nav-link active" aria-current="page" href="index.php">Accueil</a>
                         </li>
                     </ul>
-                    <a href="panier.php" class="btn btn-secondary">
+                    <?php if (isset($_SESSION['username'])): ?>
+                        <span class="navbar-text me-3">
+                            Connecté en tant que <?= $_SESSION['username']; ?>
+                        </span>
+                        <a href="logout.php" class="btn btn-danger">Se déconnecter</a>
+                        <a href="backoffice.php" class="btn btn-warning ms-2">
+                            Backoffice
+                        </a>
+                    <?php else: ?>
+                        <a href="backoffice.php" class="btn btn-success ms-2">Se connecter</a>
+                    <?php endif; ?>
+                    <a href="panier.php" class="btn btn-secondary ms-2">
                         Panier
                     </a>
                 </div>
